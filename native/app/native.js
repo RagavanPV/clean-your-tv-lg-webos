@@ -19,7 +19,7 @@ var child,ready=false,stopping=false,lastAck=monotonic(),buffer='',lastCommand='
 log({event:'start',pid:process.pid,uid:process.getuid(),automatic:automatic});
 fs.writeFileSync(data+'/control.json','{}',{mode:432});fs.chmodSync(data+'/control.json',432);
 function launch(id,done){var settled=false;var deadline=setTimeout(function(){if(settled)return;settled=true;log({event:'launch-timeout',id:id});if(done)done(false);},3000);service.call('luna://com.webos.applicationManager/launch',{id:id},function(m){if(settled)return;settled=true;clearTimeout(deadline);log({event:'launch',id:id,result:m.payload});if(done)done(m.payload&&m.payload.returnValue===true);});}
-function finish(code,signal){if(stopping)return;stopping=true;if(screenWatch)screenWatch.close();clearInterval(timer);log({event:'worker-exit',code:code,signal:signal});if(policy.shouldBlock(code,signal))fs.writeFileSync(data+'/blocked','stopped',{mode:420});
+function finish(code,signal){if(stopping)return;stopping=true;if(screenWatch)screenWatch.close();if(irChild)irChild.stdin.end();clearInterval(timer);log({event:'worker-exit',code:code,signal:signal});if(policy.shouldBlock(code,signal))fs.writeFileSync(data+'/blocked','stopped',{mode:420});
  function end(){try{fs.unlinkSync(pidPath);}catch(e){}process.exit(code===22?0:(code||0));}
  // Let an already-issued custom-Home request settle before the final LG launch.
  var finishDeadline=monotonic()+3200;
@@ -41,7 +41,17 @@ var timer=setInterval(function(){if(stopping)return;try{var raw=fs.readFileSync(
  }
  if(child){if(policy.expired(lastAck,monotonic())){log({event:'worker-watchdog'});child.kill('SIGKILL');return;}child.stdin.write('P');}
 },400);
-setTimeout(function(){launch('com.gathin.tvhome',function(ok){if(ok)start();else {block();process.exit(3);}});},automatic?0:1000);
+// Basic IR remotes bypass relay.c; irwatch only observes them, so LG Home opens first
+// and a short Home press brings the launcher back on top a moment later.
+var irChild=null,irBuffer='';
+function startIr(){irChild=cp.spawn(root+'/irwatch',[],{stdio:['pipe','pipe','ignore']});
+ irChild.on('error',function(e){log({event:'ir-error',error:String(e)});irChild=null;});
+ irChild.on('exit',function(code){log({event:'ir-exit',code:code});irChild=null;});
+ irChild.stdin.on('error',function(){});
+ irChild.stdout.on('data',function(b){irBuffer+=b;var i;while((i=irBuffer.indexOf('\n'))>=0){var line=irBuffer.slice(0,i);irBuffer=irBuffer.slice(i+1);log({event:'ir',message:line});
+  if(line==='HOME'&&!stopping)setTimeout(function(){if(stopping||launching)return;launching=true;launch('com.gathin.tvhome',function(){launching=false;});},400);}});
+}
+setTimeout(function(){launch('com.gathin.tvhome',function(ok){if(ok){start();startIr();}else {block();process.exit(3);}});},automatic?0:1000);
 
 
 process.on('exit',function(code){log({event:'controller-exit',code:code});});

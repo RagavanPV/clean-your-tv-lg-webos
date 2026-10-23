@@ -21,6 +21,7 @@ touch build/native-app/state/.keep build/native-service/state/.keep
 "$ZIG" cc -target arm-linux-musleabi -Os -static -s native/app/detach.c -o build/native-app/detach
 "$ZIG" cc -target arm-linux-musleabi -Os -static -s native/prototype/relay.c native/prototype/filter.c -o build/native-app/relay
 "$ZIG" cc -target arm-linux-musleabi -Os -static -s native/app/resume.c -o build/native-app/resume
+"$ZIG" cc -target arm-linux-musleabi -Os -static -s native/app/irwatch.c -o build/native-app/irwatch
 "$ARES_PACKAGE" build/native-app build/native-service -o dist
 python3 scripts/fix-package-data.py dist/com.local.nativehome_0.6.13_arm.ipk
 "$ARES_PACKAGE" launcher renewal-service -o dist
