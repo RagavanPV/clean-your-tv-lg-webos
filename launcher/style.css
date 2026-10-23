@@ -211,7 +211,8 @@ header {
   filter: brightness(0) invert(1);
 }
 
-.item .logo.wordmark { height: 54px; }
+/* Wordmark glyphs sit small inside a square canvas, so they need a much taller box. */
+.item .logo.wordmark { height: 150px; margin: -11px 0; }
 
 .item .label {
   position: relative;
@@ -370,6 +371,7 @@ header {
 }
 
 #allGrid .item .logo { height: 38px; }
+#allGrid .item .logo.wordmark { height: 120px; margin: -8px 0; }
 #allGrid .item .label { font-size: 26px; overflow: hidden; text-overflow: ellipsis; }
 #allGrid .item.focused { transform: scale(1.06); }
 
