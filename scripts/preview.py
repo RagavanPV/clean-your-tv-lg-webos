@@ -17,7 +17,7 @@ LAUNCHER_FILES = {
     'user-data.js', 'update-panel.js', 'renewal-panel.js', 'profile-bootstrap.js',
     'native-bootstrap.js', 'helper-control.js', 'fonts/outfit.ttf', 'fonts/OFL.txt',
     'wallpaper.js',
-} | {'logos/' + p.name for p in (Path(__file__).resolve().parents[1] / 'launcher/logos').glob('*.svg')}
+} | {'logos/' + p.name for p in (Path(__file__).resolve().parents[1] / 'launcher/logos').glob('*') if p.suffix in ('.svg', '.png')}
 DEMO_APPS = [
     ('youtube', 'YouTube', '#ffffff'),
     ('netflix', 'Netflix', '#ffffff'),
@@ -148,6 +148,11 @@ class Handler(BaseHTTPRequestHandler):
             file = ROOT / path.lstrip('/')
         elif path.startswith('/preview/icons/') and path[len('/preview/icons/'):] in ICON_FILES:
             file = ROOT / path.lstrip('/')
+        elif path == '/launcher/apps.js' and REAL_APPS and (ROOT / 'launcher/apps.js').is_file():
+            file = ROOT / 'launcher/apps.js'
+        elif path.startswith('/launcher/icons/') and REAL_APPS and '/' not in path[len('/launcher/icons/'):] \
+                and (ROOT / path.lstrip('/')).is_file():
+            file = ROOT / path.lstrip('/')
         elif path == '/launcher/apps.js':
             self.respond(('window.TV_APPS = ' + json.dumps(inventory()) + ';\n').encode(),
                          'text/javascript; charset=utf-8')
@@ -183,6 +188,10 @@ class Handler(BaseHTTPRequestHandler):
             super().log_request(code, size)
 
 
+# --real-apps: serve your synced launcher/apps.js and icons (local server only, never exported).
+REAL_APPS = False
+
+
 def make_server(port):
     return ThreadingHTTPServer(('127.0.0.1', port), Handler)
 
@@ -191,12 +200,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--port', type=int, default=8765)
     parser.add_argument('--open', action='store_true', help='open preview in the default browser')
+    parser.add_argument('--real-apps', action='store_true', help='use your synced apps.js and icons (local only)')
     parser.add_argument('--build', type=Path, metavar='DIRECTORY', help='export a static preview for GitHub Pages')
     args = parser.parse_args()
     if args.build:
         export_site(args.build)
         print(f'Static preview: {args.build}')
         return
+    global REAL_APPS
+    REAL_APPS = args.real_apps
     with make_server(args.port) as server:
         url = f'http://127.0.0.1:{server.server_port}/'
         print(f'Launcher preview: {url}\nStop: Ctrl+C', flush=True)

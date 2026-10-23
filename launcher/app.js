@@ -4,20 +4,22 @@
   var KEY_OK = 13, KEY_BACK = 461, KEY_ESC = 27, LEFT = 37, UP = 38, RIGHT = 39, DOWN = 40;
   var HOLD_MS = 600, TABS_KEY = 'tvhome.tabs', DOCK_WIDTH = 1728, GRID_COLUMNS = 5;
   var MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-  // Per-app pill styling, matched against normalised app titles. file: a white Simple
-  // Icons glyph; tvIcon: the app's own icon from the TV; label: false hides the title;
-  // color: the brand tint for the glass.
+  // Per-app pill logos, matched against normalised app titles. src: a full-colour logo
+  // shown alone; tvIcon: the app's own TV icon (SonyLIV and Sun NXT have no transparent logo);
+  // h: logo height in TV pixels inside a 128 px pill; glyph: a white Simple Icons glyph
+  // shown beside the app's name.
   var BRANDS = {
-    netflix: {file: 'netflix', label: false, color: '#e50914'},
-    youtube: {file: 'youtube', label: false, color: '#ff0033'},
-    youtubemusic: {file: 'youtubemusic', color: '#ff0033'},
-    primevideo: {file: 'primevideo', wordmark: true, color: '#00a8e1'},
-    amazonprimevideo: {file: 'primevideo', wordmark: true, color: '#00a8e1'},
-    jiohotstar: {tvIcon: true, color: '#1492ff'}, hotstar: {tvIcon: true, color: '#1492ff'},
-    sonyliv: {tvIcon: true, color: '#1b3a7a'},
-    zee5: {tvIcon: true, color: '#8230c6'},
-    spotify: {file: 'spotify', color: '#1db954'}, twitch: {file: 'twitch', color: '#9146ff'},
-    appletv: {file: 'appletv'}, applemusic: {file: 'applemusic', color: '#fa2d48'}
+    netflix: {src: 'logos/netflix-wordmark.svg', h: 50},
+    youtube: {src: 'logos/youtube-wordmark.svg', h: 46},
+    primevideo: {src: 'logos/primevideo-color.svg', h: 56},
+    amazonprimevideo: {src: 'logos/primevideo-color.svg', h: 56},
+    jiohotstar: {src: 'logos/jiohotstar-white.png', h: 50},
+    hotstar: {src: 'logos/jiohotstar-white.png', h: 50},
+    zee5: {src: 'logos/zee5-color.svg', h: 76},
+    sonyliv: {tvIcon: true, h: 92},
+    sunnxt: {tvIcon: true, h: 92},
+    youtubemusic: {glyph: 'youtubemusic'}, spotify: {glyph: 'spotify'}, twitch: {glyph: 'twitch'},
+    appletv: {glyph: 'appletv'}, applemusic: {glyph: 'applemusic'}
   };
 
   var $ = function (id) { return document.getElementById(id); };
@@ -130,24 +132,24 @@
     var el = document.createElement('div');
     el.className = 'item glass smoked';
     var brand = BRANDS[norm(app.title)] || {};
-    if (brand.color) {
-      // Tinted glass: the brand colour, still a little see-through (no color-mix on webOS 22).
-      var rgb = [1, 3, 5].map(function (i) { return parseInt(brand.color.slice(i, i + 2), 16); }).join(',');
-      el.classList.add('branded');
-      el.style.background = 'linear-gradient(180deg, rgba(' + rgb + ',0.86), rgba(' + rgb + ',0.64))';
+    var img = document.createElement('img');
+    if (brand.src || (brand.tvIcon && app.icon)) {
+      img.className = 'logo original' + (brand.tvIcon ? ' appIcon' : '');
+      img.src = brand.tvIcon ? app.icon : brand.src;
+      // A share of the pill's height, so logos scale with the smaller All apps pills.
+      img.style.height = (brand.h / 128 * 100) + '%';
+      el.appendChild(img);
+      return el;
     }
-    if (brand.file || (brand.tvIcon && app.icon)) {
-      var img = document.createElement('img');
-      img.className = brand.tvIcon ? 'appIcon' : 'logo' + (brand.wordmark ? ' wordmark' : '') + (brand.label === false ? ' solo' : '');
-      img.src = brand.tvIcon ? app.icon : 'logos/' + brand.file + '.svg';
+    if (brand.glyph) {
+      img.className = 'logo';
+      img.src = 'logos/' + brand.glyph + '.svg';
       el.appendChild(img);
     }
-    if (!brand.wordmark && brand.label !== false) {
-      var label = document.createElement('span');
-      label.className = 'label' + (app.title.length > 12 ? ' long' : '');
-      label.textContent = app.title;
-      el.appendChild(label);
-    }
+    var label = document.createElement('span');
+    label.className = 'label' + (app.title.length > 12 ? ' long' : '');
+    label.textContent = app.title;
+    el.appendChild(label);
     return el;
   }
 
@@ -156,6 +158,7 @@
     tilesEl.innerHTML = '';
     tilesEl.style.transform = 'none';
     tilesEl.dataset.offset = 0;
+    $('dock').classList.remove('more-left', 'more-right');
     dockItems = tab.apps.map(function (app, i) {
       var el = makePill(app);
       el.addEventListener('mouseover', function () { if (!panelOpen()) focusDock(i); });
@@ -222,6 +225,9 @@
     if (left - offset < 0) offset = left;
     tilesEl.dataset.offset = offset;
     tilesEl.style.transform = 'translateX(' + -offset + 'px)';
+    var last = dockItems[dockItems.length - 1].el;
+    $('dock').classList.toggle('more-left', offset > 0);
+    $('dock').classList.toggle('more-right', last.offsetLeft + last.offsetWidth - offset > DOCK_WIDTH);
   }
 
   function focusTab(i) {

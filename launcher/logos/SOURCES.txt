@@ -11,3 +11,10 @@ youtube: https://raw.githubusercontent.com/simple-icons/simple-icons/develop/ico
 youtubemusic: https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/youtubemusic.svg
 
 Simple Icons: CC0 (https://github.com/simple-icons/simple-icons/blob/develop/LICENSE.md).
+
+Full-colour wordmarks (Wikimedia Commons, text logos; trademarks of their owners):
+netflix-wordmark: https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg
+youtube-wordmark: https://upload.wikimedia.org/wikipedia/commons/b/b8/YouTube_Logo_2017.svg (text recoloured white for dark glass)
+primevideo-color: https://upload.wikimedia.org/wikipedia/commons/9/90/Prime_Video_logo_%282024%29.svg
+zee5-color: https://upload.wikimedia.org/wikipedia/commons/6/6e/ZEE5_2025.svg
+jiohotstar-white: https://upload.wikimedia.org/wikipedia/commons/4/40/JioHotstar_2025.png (scaled to 640 px, black text recoloured white)

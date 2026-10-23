@@ -12,7 +12,7 @@ window.CONFIG = {
   // Tabs under the app row. "apps" lists app ids or title matches ("a|b" = either);
   // the tab with rest: true shows every app not placed in another tab.
   tabs: [
-    {name: "Movies", apps: ["Netflix", "YouTube", "Prime Video", "JioHotstar|Hotstar", "Sony LIV|SonyLIV", "ZEE5|Zee 5"]},
+    {name: "Movies", apps: ["Netflix", "YouTube", "Prime Video", "JioHotstar|Hotstar", "Sony LIV|SonyLIV", "ZEE5|Zee 5", "Sun NXT|SunNXT"]},
     {name: "Apps", rest: true}
   ],
 
