@@ -29,15 +29,19 @@ function finish(code,signal){if(stopping)return;stopping=true;if(screenWatch)scr
  }
  if(ready){var c=cp.spawn(root+'/relay',['cleanup'],{stdio:'ignore'});c.on('exit',function(n){log({event:'cleanup',code:n});cleaned();});}else cleaned();
 }
-// Standby freezes processes, so the worker can miss its pings and exit while the TV
-// sleeps or wakes. That is not a failure: during power changes and for 2 minutes
-// after, skip the watchdog and restart the worker instead of stopping with the
-// safety block. Wall-clock time, because monotonic time stops during suspend.
-var lastPowerOffAt=0;
+// The worker can miss its pings without anything being wrong: standby freezes
+// processes, and on this TV's slow chip loading the launcher can stall the
+// controller past the 2.5 s watchdog. Restart the worker instead of stopping with
+// the safety block; give up only after 5 failures in 2 minutes. Exit 22 (long
+// Home on the Magic Remote), 25 (device gone) and 0 (stop command) still stop.
+// Wall-clock time, because monotonic time stops during suspend.
+var lastPowerOffAt=0,restarts=[];
 function powerTransition(){return Date.now()-lastPowerOffAt<120000;}
 function onWorkerExit(code,signal){
- if(stopping||!powerTransition()){finish(code,signal);return;}
- log({event:'worker-restart-after-power',code:code,signal:signal});
+ var now=Date.now();restarts=restarts.filter(function(t){return now-t<120000;});
+ if(stopping||code===0||code===22||code===25||(restarts.length>=5&&!powerTransition())){finish(code,signal);return;}
+ restarts.push(now);
+ log({event:'worker-restart',code:code,signal:signal,recent:restarts.length});
  var wasReady=ready;ready=false;child=null;
  function again(){if(!stopping&&!child)start();}
  if(wasReady){var c=cp.spawn(root+'/relay',['cleanup'],{stdio:'ignore'});c.on('exit',function(){setTimeout(again,1000);});}
