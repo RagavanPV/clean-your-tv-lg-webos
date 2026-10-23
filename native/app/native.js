@@ -29,7 +29,21 @@ function finish(code,signal){if(stopping)return;stopping=true;if(screenWatch)scr
  }
  if(ready){var c=cp.spawn(root+'/relay',['cleanup'],{stdio:'ignore'});c.on('exit',function(n){log({event:'cleanup',code:n});cleaned();});}else cleaned();
 }
-function start(){lastAck=monotonic();child=cp.spawn(root+'/relay',[],{stdio:['pipe','pipe','pipe']});log({event:'worker-start',pid:child.pid});child.stderr.on('data',function(b){log({stderr:String(b)});});child.on('error',function(e){log({error:String(e)});finish(1);});child.on('exit',finish);
+// Standby freezes processes, so the worker can miss its pings and exit while the TV
+// sleeps or wakes. That is not a failure: during power changes and for 2 minutes
+// after, skip the watchdog and restart the worker instead of stopping with the
+// safety block. Wall-clock time, because monotonic time stops during suspend.
+var lastPowerOffAt=0;
+function powerTransition(){return Date.now()-lastPowerOffAt<120000;}
+function onWorkerExit(code,signal){
+ if(stopping||!powerTransition()){finish(code,signal);return;}
+ log({event:'worker-restart-after-power',code:code,signal:signal});
+ var wasReady=ready;ready=false;child=null;
+ function again(){if(!stopping&&!child)start();}
+ if(wasReady){var c=cp.spawn(root+'/relay',['cleanup'],{stdio:'ignore'});c.on('exit',function(){setTimeout(again,1000);});}
+ else setTimeout(again,1000);
+}
+function start(){lastAck=monotonic();child=cp.spawn(root+'/relay',[],{stdio:['pipe','pipe','pipe']});log({event:'worker-start',pid:child.pid});child.stderr.on('data',function(b){log({stderr:String(b)});});child.on('error',function(e){log({error:String(e)});finish(1);});child.on('exit',onWorkerExit);
  child.stdout.on('data',function(b){buffer+=b;var i;while((i=buffer.indexOf('\n'))>=0){var line=buffer.slice(0,i);buffer=buffer.slice(i+1);if(line==='P'){lastAck=monotonic();continue;}log({event:'worker',message:line});if(line==='READY'){ready=true;lastAck=monotonic();}if(line==='HOME'&&!stopping&&!launching){launching=true;launch('com.gathin.tvhome',function(ok){launching=false;if(!ok)child.stdin.end();});}}});
  child.stdin.on('error',function(){});
 }
@@ -39,7 +53,7 @@ var timer=setInterval(function(){if(stopping)return;checkTurnOff();try{var raw=f
   if(!shouldResumeLaunch(lastForeground)){log({event:'resume-already-foreground'});}
   else if(monotonic()<=resumeDue){launching=true;log({event:'resume-launch'});launch('com.gathin.tvhome',function(ok){launching=false;if(!ok)log({event:'resume-launch-failed'});});}
  }
- if(child){if(policy.expired(lastAck,monotonic())){log({event:'worker-watchdog'});child.kill('SIGKILL');return;}child.stdin.write('P');}
+ if(child){if(powerTransition())lastAck=monotonic();else if(policy.expired(lastAck,monotonic())){log({event:'worker-watchdog'});child.kill('SIGKILL');return;}child.stdin.write('P');}
 },400);
 // Basic IR remotes bypass relay.c; irwatch only observes them, so LG Home opens first
 // and a short Home press brings the launcher back on top a moment later.
@@ -93,6 +107,7 @@ var screenWatch=require('./screen-watch')(data,log,function(id){
  }
 },function(){lastForeground=null;screenPolicy.reset();},function(p){
  log({event:'power',state:p.state,processing:p.processing,onOff:p.onOff});
+ if(!(p.state==='Active'&&!p.processing&&p.onOff!=='off'))lastPowerOffAt=Date.now();
  if(p.onOff==='off'||p.state==='Active Standby'||p.state==='Suspend')resumePendingUntil=0;
  if(powerPolicy.next(p)&&!stopping)resumePendingUntil=monotonic()+10000;
 });
