@@ -4,11 +4,20 @@
   var KEY_OK = 13, KEY_BACK = 461, KEY_ESC = 27, LEFT = 37, UP = 38, RIGHT = 39, DOWN = 40;
   var HOLD_MS = 600, TABS_KEY = 'tvhome.tabs', DOCK_WIDTH = 1728, GRID_COLUMNS = 5;
   var MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-  // White glyphs from Simple Icons, matched against normalised app titles.
-  var LOGOS = {
-    netflix: {file: 'netflix'}, youtube: {file: 'youtube'}, youtubemusic: {file: 'youtubemusic'},
-    primevideo: {file: 'primevideo', wordmark: true}, amazonprimevideo: {file: 'primevideo', wordmark: true},
-    spotify: {file: 'spotify'}, appletv: {file: 'appletv'}, applemusic: {file: 'applemusic'}, twitch: {file: 'twitch'}
+  // Per-app pill styling, matched against normalised app titles. file: a white Simple
+  // Icons glyph; tvIcon: the app's own icon from the TV; label: false hides the title;
+  // color: the brand tint for the glass.
+  var BRANDS = {
+    netflix: {file: 'netflix', label: false, color: '#e50914'},
+    youtube: {file: 'youtube', label: false, color: '#ff0033'},
+    youtubemusic: {file: 'youtubemusic', color: '#ff0033'},
+    primevideo: {file: 'primevideo', wordmark: true, color: '#00a8e1'},
+    amazonprimevideo: {file: 'primevideo', wordmark: true, color: '#00a8e1'},
+    jiohotstar: {tvIcon: true, color: '#1492ff'}, hotstar: {tvIcon: true, color: '#1492ff'},
+    sonyliv: {tvIcon: true, color: '#1b3a7a'},
+    zee5: {tvIcon: true, color: '#8230c6'},
+    spotify: {file: 'spotify', color: '#1db954'}, twitch: {file: 'twitch', color: '#9146ff'},
+    appletv: {file: 'appletv'}, applemusic: {file: 'applemusic', color: '#fa2d48'}
   };
 
   var $ = function (id) { return document.getElementById(id); };
@@ -120,14 +129,20 @@
   function makePill(app) {
     var el = document.createElement('div');
     el.className = 'item glass smoked';
-    var logo = LOGOS[norm(app.title)];
-    if (logo) {
+    var brand = BRANDS[norm(app.title)] || {};
+    if (brand.color) {
+      // Tinted glass: the brand colour, still a little see-through (no color-mix on webOS 22).
+      var rgb = [1, 3, 5].map(function (i) { return parseInt(brand.color.slice(i, i + 2), 16); }).join(',');
+      el.classList.add('branded');
+      el.style.background = 'linear-gradient(180deg, rgba(' + rgb + ',0.86), rgba(' + rgb + ',0.64))';
+    }
+    if (brand.file || (brand.tvIcon && app.icon)) {
       var img = document.createElement('img');
-      img.className = 'logo' + (logo.wordmark ? ' wordmark' : '');
-      img.src = 'logos/' + logo.file + '.svg';
+      img.className = brand.tvIcon ? 'appIcon' : 'logo' + (brand.wordmark ? ' wordmark' : '') + (brand.label === false ? ' solo' : '');
+      img.src = brand.tvIcon ? app.icon : 'logos/' + brand.file + '.svg';
       el.appendChild(img);
     }
-    if (!logo || !logo.wordmark) {
+    if (!brand.wordmark && brand.label !== false) {
       var label = document.createElement('span');
       label.className = 'label' + (app.title.length > 12 ? ' long' : '');
       label.textContent = app.title;

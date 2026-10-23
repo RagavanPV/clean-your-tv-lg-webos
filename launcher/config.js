@@ -1,7 +1,13 @@
 window.CONFIG = {
   columns: 6,
   dockApps: [],
-  hiddenApps: ["com.gathin.tvhome", "com.local.nativehome"],
+  hiddenApps: [
+    "com.gathin.tvhome", "com.local.nativehome",
+    // Cleanup: preinstalled and promo apps
+    "com.miniclip.eightballpool", "com.viacom18.media.ondemand", "yupptv",
+    "com.webos.app.lgchannels", "com.twin.app.gamingportal", "epoxyaisports",
+    "webos.day", "com.webos.app.sportsteamsettings"
+  ],
 
   // Tabs under the app row. "apps" lists app ids or title matches ("a|b" = either);
   // the tab with rest: true shows every app not placed in another tab.
