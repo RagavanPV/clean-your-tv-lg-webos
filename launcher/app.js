@@ -25,7 +25,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var tilesEl = $('tiles'), tabBar = $('tabBar'), inputsPanel = $('inputsPanel'), allPanel = $('allPanel');
   var allGrid = $('allGrid'), toastEl = $('toast');
-  var topButtons = [$('btnLgHome'), $('btnInputs'), $('btnSettings'), $('btnSearch')];
+  var topButtons = [$('btnLgHome'), $('btnInputs'), $('btnSettings'), $('btnSearch'), $('btnPower')];
 
   var apps = [], tabs = [], dockItems = [], tabEls = [], inputRows = [], gridItems = [];
   var zone = 'dock', tabIndex = 0, tabFocus = 0, dockIndex = 0, topIndex = 0, inputIndex = 0, gridIndex = 0;
@@ -251,6 +251,12 @@
     else if (id === 'btnInputs') openInputs();
     else if (id === 'btnSettings') { if (window.RenewalPanel) window.RenewalPanel.open(); }
     else if (id === 'btnSearch') launchFirst((CONFIG.searchApps || []).slice(), 'Search');
+    else if (id === 'btnPower') {
+      // Home Helper owns the paired TV session that is allowed to power off.
+      call('luna://com.local.nativehome/turnOff', {}, function (r) {
+        if (r.returnValue !== true) toast("Couldn't turn off the TV. Use the remote's power button.");
+      });
+    }
     else if (id === 'btnResumeHome' && window.HelperControl) window.HelperControl.resume();
   }
 

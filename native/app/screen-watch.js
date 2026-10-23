@@ -30,6 +30,8 @@ module.exports=function(data,log,onForeground,onReset,onPower){
   s.on('message',function(raw){
    if(closed)return;
    var m;try{m=JSON.parse(String(raw));}catch(e){return;}
+   // A refused power-off must not tear down the foreground watch below.
+   if(m.id==='turn-off'){log({event:'turn-off-reply',type:m.type,error:m.error?String(m.error):undefined});return;}
    if(m.type==='registered'){
     s.send(JSON.stringify({type:'subscribe',id:'foreground',uri:'ssap://com.webos.applicationManager/getForegroundAppInfo',payload:{}}));
     if(onPower)s.send(JSON.stringify({type:'subscribe',id:'power',uri:'ssap://com.webos.service.tvpower/power/getPowerState',payload:{}}));
@@ -54,5 +56,11 @@ module.exports=function(data,log,onForeground,onReset,onPower){
   s.on('close',function(code){clearTimeout(deadline);clearInterval(pulse);onReset();log({event:'screen-watch-disconnected',code:code});later();});
  }
  connect();
- return {close:function(){closed=true;clearTimeout(retry);if(cleanup)cleanup();onReset();if(socket)socket.terminate();}};
+ // Power off over the paired SSAP session (CONTROL_POWER). False when not connected.
+ function turnOff(){
+  if(closed||!socket||socket.readyState!==1)return false;
+  socket.send(JSON.stringify({type:'request',id:'turn-off',uri:'ssap://system/turnOff',payload:{}}));
+  return true;
+ }
+ return {turnOff:turnOff,close:function(){closed=true;clearTimeout(retry);if(cleanup)cleanup();onReset();if(socket)socket.terminate();}};
 };

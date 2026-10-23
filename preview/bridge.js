@@ -48,6 +48,9 @@
             effective: {sam_home: home, profiles: {defaultApps: {categories: {home: home}}, idleApp: {appId: home}}}};
           result = {returnValue: true, result: {returnValue: true, result: rootMethod === 'restore' ? 'restored' : state}};
         }
+      } else if (uri === 'luna://com.local.nativehome/turnOff') {
+        message('TV turned off');
+        result = {returnValue: true};
       } else if (uri === 'luna://com.gathin.tvhome.renewal/wallpapers') {
         // Served by scripts/preview.py from live Bing data; the static export has none.
         var x = new XMLHttpRequest();

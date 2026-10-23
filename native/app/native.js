@@ -59,6 +59,13 @@ function irReturn(){if(stopping)return;if(launching){if(monotonic()<irGuardUntil
 setTimeout(function(){launch('com.gathin.tvhome',function(ok){if(ok){start();startIr();}else {block();process.exit(3);}});},automatic?0:1000);
 
 
+// The launcher's power button: a web app cannot turn the TV off, the paired session can.
+service.register('turnOff',function(m){
+ var ok=!!(screenWatch&&!stopping&&screenWatch.turnOff());
+ log({event:'turn-off',ok:ok});
+ m.respond({returnValue:ok,errorText:ok?undefined:'not-connected'});
+});
+
 process.on('exit',function(code){log({event:'controller-exit',code:code});});
 
 service.call('luna://com.local.nativehome.service/status',{},function(m){
