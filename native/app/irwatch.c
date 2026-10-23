@@ -1,7 +1,7 @@
 /* Passive Home watcher for the basic IR remote ("LGE RCU"), which has no writable
    twin device for relay.c to forward through. Never grabs the device: LG still
    handles every key, and this only reports short Home presses so the controller
-   can bring the launcher back on top. Prints HOME (short) or LONG (held >= 2 s). */
+   can bring the launcher back on top. Prints HOME (short) or LONG (held >= 5 s). */
 #include <errno.h>
 #include <fcntl.h>
 #include <poll.h>
@@ -14,7 +14,7 @@
 #include <unistd.h>
 #define NAME(len) _IOC(_IOC_READ,'E',0x06,len)
 #define HOME_KEY 773
-#define LONG_MS 2000
+#define LONG_MS 5000
 struct ev {uint32_t sec,usec;uint16_t type,code;int32_t value;};
 static volatile sig_atomic_t stop=0;
 static void stopped(int s){(void)s;stop=1;}

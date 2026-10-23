@@ -49,7 +49,12 @@ function startIr(){irChild=cp.spawn(root+'/irwatch',[],{stdio:['pipe','pipe','ig
  irChild.on('exit',function(code){log({event:'ir-exit',code:code});irChild=null;});
  irChild.stdin.on('error',function(){});
  irChild.stdout.on('data',function(b){irBuffer+=b;var i;while((i=irBuffer.indexOf('\n'))>=0){var line=irBuffer.slice(0,i);irBuffer=irBuffer.slice(i+1);log({event:'ir',message:line});
-  if(line==='HOME'&&!stopping)setTimeout(function(){if(stopping||launching)return;launching=true;launch('com.gathin.tvhome',function(){launching=false;});},400);}});
+  if(line==='HOME'&&!stopping){irGuardUntil=monotonic()+3000;setTimeout(irReturn,250);}}});
+}
+// LG Home can finish opening just after the launcher returns and cover it, so for a
+// few seconds after a short Home press, LG Home reaching the foreground means retry.
+var irGuardUntil=0;
+function irReturn(){if(stopping)return;if(launching){if(monotonic()<irGuardUntil)setTimeout(irReturn,300);return;}launching=true;launch('com.gathin.tvhome',function(){launching=false;});
 }
 setTimeout(function(){launch('com.gathin.tvhome',function(ok){if(ok){start();startIr();}else {block();process.exit(3);}});},automatic?0:1000);
 
@@ -70,6 +75,7 @@ var watchedApps=[];try{watchedApps=JSON.parse(fs.readFileSync(data+'/apps.json',
 var screenPolicy=require('./screen-policy')(watchedApps);
 var screenWatch=require('./screen-watch')(data,log,function(id){
  lastForeground=id;log({event:'foreground',id:id});
+ if(id==='com.webos.app.home'&&monotonic()<irGuardUntil){log({event:'ir-home-covered'});setTimeout(irReturn,250);}
  var exited=screenPolicy.next(id,monotonic());
  if(exited&&ready&&!stopping&&!launching){
   launching=true;log({event:'return-after-exit'});
