@@ -56,12 +56,14 @@ function startIr(){irChild=cp.spawn(root+'/irwatch',[],{stdio:['pipe','pipe','ig
 var irGuardUntil=0;
 function irReturn(){if(stopping)return;if(launching){if(monotonic()<irGuardUntil)setTimeout(irReturn,300);return;}launching=true;launch('com.gathin.tvhome',function(){launching=false;});
 }
-// The launcher's power button leaves a request in its service folder (see
-// renewal-service/service.js); only requests made after this controller started count.
-var turnOffPath='/media/developer/apps/usr/palm/services/com.gathin.tvhome.renewal/turn-off.json',startedAt=Date.now();
+// The launcher's power button leaves a timestamped request in its service's state
+// folder (see renewal-service/service.js). The helper cannot delete it there, so it
+// acts once per new timestamp, and only on requests made after it started.
+var turnOffPath='/media/developer/apps/usr/palm/services/com.gathin.tvhome.renewal/state/turn-off.json',lastTurnOff=Date.now();
 function checkTurnOff(){var req;try{req=JSON.parse(fs.readFileSync(turnOffPath,'utf8'));}catch(e){return;}
- try{fs.unlinkSync(turnOffPath);}catch(e){}
- if(!req||typeof req.at!=='number'||req.at<startedAt||Date.now()-req.at>10000){log({event:'turn-off-stale'});return;}
+ if(!req||typeof req.at!=='number'||req.at<=lastTurnOff)return;
+ lastTurnOff=req.at;
+ if(Date.now()-req.at>10000){log({event:'turn-off-stale'});return;}
  var off=!!(screenWatch&&screenWatch.turnOff());log({event:'turn-off',ok:off});
 }
 setTimeout(function(){launch('com.gathin.tvhome',function(ok){if(ok){start();startIr();}else {block();process.exit(3);}});},automatic?0:1000);

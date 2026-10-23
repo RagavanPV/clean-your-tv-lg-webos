@@ -46,12 +46,19 @@ service.register('wallpapers',function(m){
 });
 
 // Power button: the web app cannot reach Home Helper's bus name and this service's
-// sandbox cannot see the helper's files, so leave a request in this service's own
-// folder; the helper polls it and powers off over its paired SSAP session.
+// sandbox cannot see the helper's files, so leave a request in this service's state
+// folder, the one place it can always write (LG resets the package folder's
+// permissions on boot). 0711 lets the helper open this one file without listing the
+// folder; the renewal files in it stay 0600.
 service.register('turnOff',function(m){
  var raw=m.ls2Message,id=raw&&raw.applicationID&&raw.applicationID();
  if(typeof id!=='string'||id.split(' ')[0]!=='com.gathin.tvhome'){m.respond({returnValue:false,errorText:'caller-not-authorized'});return;}
- try{fs.writeFileSync(__dirname+'/turn-off.json',JSON.stringify({at:Date.now()}),{mode:420});m.respond({returnValue:true});}
+ try{
+  if(!fs.existsSync(dir))fs.mkdirSync(dir,{mode:448});
+  fs.chmodSync(dir,457);
+  fs.writeFileSync(dir+'/turn-off.json',JSON.stringify({at:Date.now()}),{mode:420});fs.chmodSync(dir+'/turn-off.json',420);
+  m.respond({returnValue:true});
+ }
  catch(e){m.respond({returnValue:false,errorText:e.code||e.message});}
 });
 
