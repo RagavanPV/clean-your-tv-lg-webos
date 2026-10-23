@@ -25,7 +25,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var tilesEl = $('tiles'), tabBar = $('tabBar'), inputsPanel = $('inputsPanel'), allPanel = $('allPanel');
   var allGrid = $('allGrid'), toastEl = $('toast');
-  var topButtons = [$('btnInputs'), $('btnSettings'), $('btnSearch')];
+  var topButtons = [$('btnLgHome'), $('btnInputs'), $('btnSettings'), $('btnSearch')];
 
   var apps = [], tabs = [], dockItems = [], tabEls = [], inputRows = [], gridItems = [];
   var zone = 'dock', tabIndex = 0, tabFocus = 0, dockIndex = 0, topIndex = 0, inputIndex = 0, gridIndex = 0;
@@ -247,7 +247,8 @@
 
   function activateTop(i) {
     var id = topButtons[i].id;
-    if (id === 'btnInputs') openInputs();
+    if (id === 'btnLgHome') launch('com.webos.app.home', 'LG Home');
+    else if (id === 'btnInputs') openInputs();
     else if (id === 'btnSettings') { if (window.RenewalPanel) window.RenewalPanel.open(); }
     else if (id === 'btnSearch') launchFirst((CONFIG.searchApps || []).slice(), 'Search');
     else if (id === 'btnResumeHome' && window.HelperControl) window.HelperControl.resume();
