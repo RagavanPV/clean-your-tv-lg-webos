@@ -252,9 +252,9 @@
     else if (id === 'btnSettings') { if (window.RenewalPanel) window.RenewalPanel.open(); }
     else if (id === 'btnSearch') launchFirst((CONFIG.searchApps || []).slice(), 'Search');
     else if (id === 'btnPower') {
-      // Home Helper owns the paired TV session that is allowed to power off.
-      call('luna://com.local.nativehome/turnOff', {}, function (r) {
-        if (r.returnValue !== true) toast("Couldn't turn off the TV. Use the remote's power button.");
+      // Relayed to Home Helper, which owns the paired TV session allowed to power off.
+      call('luna://com.gathin.tvhome.renewal/turnOff', {}, function (r) {
+        if (r.returnValue !== true) toast("Couldn't turn off the TV (" + (r.errorText || 'no reply') + ')');
       });
     }
     else if (id === 'btnResumeHome' && window.HelperControl) window.HelperControl.resume();

@@ -48,7 +48,7 @@
             effective: {sam_home: home, profiles: {defaultApps: {categories: {home: home}}, idleApp: {appId: home}}}};
           result = {returnValue: true, result: {returnValue: true, result: rootMethod === 'restore' ? 'restored' : state}};
         }
-      } else if (uri === 'luna://com.local.nativehome/turnOff') {
+      } else if (uri === 'luna://com.gathin.tvhome.renewal/turnOff') {
         message('TV turned off');
         result = {returnValue: true};
       } else if (uri === 'luna://com.gathin.tvhome.renewal/wallpapers') {

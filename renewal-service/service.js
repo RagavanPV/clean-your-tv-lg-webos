@@ -45,6 +45,15 @@ service.register('wallpapers',function(m){
   function(e){m.respond({returnValue:false,errorText:e.message});});
 });
 
+// Power button: the web app cannot reach Home Helper's bus name, so hand the request
+// to the helper through the control file it polls; it powers off over its SSAP session.
+service.register('turnOff',function(m){
+ var raw=m.ls2Message,id=raw&&raw.applicationID&&raw.applicationID();
+ if(typeof id!=='string'||id.split(' ')[0]!=='com.gathin.tvhome'){m.respond({returnValue:false,errorText:'caller-not-authorized'});return;}
+ try{fs.writeFileSync('/media/developer/apps/usr/palm/applications/com.local.nativehome/state/control.json',JSON.stringify({cmd:'turn-off',at:Date.now()}));m.respond({returnValue:true});}
+ catch(e){m.respond({returnValue:false,errorText:e.code||e.message});}
+});
+
 service.register('restoreHistory',function(m){
  var raw=m.ls2Message,id=raw&&raw.applicationID&&raw.applicationID();
  if(typeof id!=='string'||id.split(' ')[0]!=='com.gathin.tvhome'){m.respond({returnValue:false});return;}

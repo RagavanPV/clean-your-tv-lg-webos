@@ -33,7 +33,7 @@ function start(){lastAck=monotonic();child=cp.spawn(root+'/relay',[],{stdio:['pi
  child.stdout.on('data',function(b){buffer+=b;var i;while((i=buffer.indexOf('\n'))>=0){var line=buffer.slice(0,i);buffer=buffer.slice(i+1);if(line==='P'){lastAck=monotonic();continue;}log({event:'worker',message:line});if(line==='READY'){ready=true;lastAck=monotonic();}if(line==='HOME'&&!stopping&&!launching){launching=true;launch('com.gathin.tvhome',function(ok){launching=false;if(!ok)child.stdin.end();});}}});
  child.stdin.on('error',function(){});
 }
-var timer=setInterval(function(){if(stopping)return;try{var raw=fs.readFileSync(data+'/control.json','utf8');if(raw!==lastCommand){lastCommand=raw;var command=JSON.parse(raw);if(command.cmd==='startup-status')service.call('luna://com.local.nativehome.service/status',{},function(r){log({event:'startup-status',result:r.payload});});if(command.cmd==='stop'&&child)child.stdin.write('Q');if(command.cmd==='stall-worker'&&child)child.stdin.write('S');if(command.cmd==='stall-controller'){cp.spawn(root+'/resume',[String(process.pid)],{stdio:'ignore'});log({event:'simulate-controller-stall'});process.kill(process.pid,'SIGSTOP');}}}catch(e){}
+var timer=setInterval(function(){if(stopping)return;try{var raw=fs.readFileSync(data+'/control.json','utf8');if(raw!==lastCommand){lastCommand=raw;var command=JSON.parse(raw);if(command.cmd==='startup-status')service.call('luna://com.local.nativehome.service/status',{},function(r){log({event:'startup-status',result:r.payload});});if(command.cmd==='turn-off'){var off=!!(screenWatch&&screenWatch.turnOff());log({event:'turn-off',ok:off});}if(command.cmd==='stop'&&child)child.stdin.write('Q');if(command.cmd==='stall-worker'&&child)child.stdin.write('S');if(command.cmd==='stall-controller'){cp.spawn(root+'/resume',[String(process.pid)],{stdio:'ignore'});log({event:'simulate-controller-stall'});process.kill(process.pid,'SIGSTOP');}}}catch(e){}
  if(resumePendingUntil&&ready&&!launching){
   var resumeDue=resumePendingUntil;resumePendingUntil=0;
   if(!shouldResumeLaunch(lastForeground)){log({event:'resume-already-foreground'});}
@@ -58,13 +58,6 @@ function irReturn(){if(stopping)return;if(launching){if(monotonic()<irGuardUntil
 }
 setTimeout(function(){launch('com.gathin.tvhome',function(ok){if(ok){start();startIr();}else {block();process.exit(3);}});},automatic?0:1000);
 
-
-// The launcher's power button: a web app cannot turn the TV off, the paired session can.
-service.register('turnOff',function(m){
- var ok=!!(screenWatch&&!stopping&&screenWatch.turnOff());
- log({event:'turn-off',ok:ok});
- m.respond({returnValue:ok,errorText:ok?undefined:'not-connected'});
-});
 
 process.on('exit',function(code){log({event:'controller-exit',code:code});});
 
