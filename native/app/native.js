@@ -48,7 +48,7 @@ function onWorkerExit(code,signal){
  else setTimeout(again,1000);
 }
 function start(){lastAck=monotonic();child=cp.spawn(root+'/relay',[],{stdio:['pipe','pipe','pipe']});log({event:'worker-start',pid:child.pid});child.stderr.on('data',function(b){log({stderr:String(b)});});child.on('error',function(e){log({error:String(e)});finish(1);});child.on('exit',onWorkerExit);
- child.stdout.on('data',function(b){buffer+=b;var i;while((i=buffer.indexOf('\n'))>=0){var line=buffer.slice(0,i);buffer=buffer.slice(i+1);if(line==='P'){lastAck=monotonic();continue;}log({event:'worker',message:line});if(line==='READY'){ready=true;lastAck=monotonic();}if(line==='HOME'&&!stopping&&!launching){launching=true;launch('com.gathin.tvhome',function(ok){launching=false;if(!ok)child.stdin.end();});}}});
+ child.stdout.on('data',function(b){buffer+=b;var i;while((i=buffer.indexOf('\n'))>=0){var line=buffer.slice(0,i);buffer=buffer.slice(i+1);if(line==='P'){lastAck=monotonic();continue;}log({event:'worker',message:line});if(line==='READY'){ready=true;lastAck=monotonic();}if(line==='HOME'&&!stopping&&!launching){launching=true;launch('com.gathin.tvhome',function(ok){launching=false;if(!ok&&child)child.stdin.end();});}}});
  child.stdin.on('error',function(){});
 }
 var timer=setInterval(function(){if(stopping)return;checkTurnOff();try{var raw=fs.readFileSync(data+'/control.json','utf8');if(raw!==lastCommand){lastCommand=raw;var command=JSON.parse(raw);if(command.cmd==='startup-status')service.call('luna://com.local.nativehome.service/status',{},function(r){log({event:'startup-status',result:r.payload});});if(command.cmd==='stop'&&child)child.stdin.write('Q');if(command.cmd==='stall-worker'&&child)child.stdin.write('S');if(command.cmd==='stall-controller'){cp.spawn(root+'/resume',[String(process.pid)],{stdio:'ignore'});log({event:'simulate-controller-stall'});process.kill(process.pid,'SIGSTOP');}}}catch(e){}
@@ -63,8 +63,9 @@ var timer=setInterval(function(){if(stopping)return;checkTurnOff();try{var raw=f
 // and a short Home press brings the launcher back on top a moment later.
 var irChild=null,irBuffer='';
 function startIr(){irChild=cp.spawn(root+'/irwatch',[],{stdio:['pipe','pipe','ignore']});
- irChild.on('error',function(e){log({event:'ir-error',error:String(e)});irChild=null;});
- irChild.on('exit',function(code){log({event:'ir-exit',code:code});irChild=null;});
+ irChild.on('error',function(e){log({event:'ir-error',error:String(e)});});
+ // The remote's device can vanish and reappear across standby; keep watching.
+ irChild.on('exit',function(code){log({event:'ir-exit',code:code});irChild=null;if(!stopping)setTimeout(function(){if(!stopping&&!irChild)startIr();},5000);});
  irChild.stdin.on('error',function(){});
  irChild.stdout.on('data',function(b){irBuffer+=b;var i;while((i=irBuffer.indexOf('\n'))>=0){var line=irBuffer.slice(0,i);irBuffer=irBuffer.slice(i+1);log({event:'ir',message:line});
   if(line==='HOME'&&!stopping){irGuardUntil=monotonic()+3000;setTimeout(irReturn,250);}}});

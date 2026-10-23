@@ -389,7 +389,8 @@
     if (zone === 'dock') {
       if (key === LEFT) focusDock(dockIndex - 1);
       else if (key === RIGHT) focusDock(dockIndex + 1);
-      else if (key === UP) focusTop(topButtons.length - 1);
+      // Land on Search, not the power button at the end, so Up then OK is harmless.
+      else if (key === UP) focusTop(Math.max(0, topButtons.indexOf($('btnSearch'))));
       else if (key === DOWN) focusTab(tabIndex);
     } else if (zone === 'tabs') {
       if (key === LEFT) focusTab(tabFocus - 1);
