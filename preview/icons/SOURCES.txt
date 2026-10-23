@@ -15,3 +15,4 @@ hbomax: https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icon
 Simple Icons: CC0 (https://github.com/simple-icons/simple-icons/blob/develop/LICENSE.md).
 Lucide globe: ISC (https://github.com/lucide-icons/lucide/blob/main/LICENSE).
 Disney+: https://commons.wikimedia.org/wiki/File:Disney%2B_2024.svg
+jiohotstar, sonyliv, zee5: plain text placeholders made for this preview.

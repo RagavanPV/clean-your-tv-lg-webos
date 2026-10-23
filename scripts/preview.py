@@ -16,7 +16,8 @@ LAUNCHER_FILES = {
     'index.html', 'style.css', 'renewal-panel.css', 'app.js', 'config.js',
     'user-data.js', 'update-panel.js', 'renewal-panel.js', 'profile-bootstrap.js',
     'native-bootstrap.js', 'helper-control.js', 'fonts/outfit.ttf', 'fonts/OFL.txt',
-}
+    'wallpaper.js',
+} | {'logos/' + p.name for p in (Path(__file__).resolve().parents[1] / 'launcher/logos').glob('*.svg')}
 DEMO_APPS = [
     ('youtube', 'YouTube', '#ffffff'),
     ('netflix', 'Netflix', '#ffffff'),
@@ -28,6 +29,9 @@ DEMO_APPS = [
     ('spotify', 'Spotify', '#191414'),
     ('twitch', 'Twitch', '#9146ff'),
     ('hbomax', 'HBO Max', '#5822b4'),
+    ('jiohotstar', 'JioHotstar', '#0f1033'),
+    ('sonyliv', 'Sony LIV', '#000000'),
+    ('zee5', 'ZEE5', '#8230c6'),
 ]
 ROOT_LAUNCHER_FILES = {
     'index.html', 'app.js', 'style.css', 'config.js', 'apps.js',
@@ -45,6 +49,21 @@ def inventory():
         {'label': 'HDMI 1 · Console', 'appId': 'preview.hdmi1'},
         {'label': 'HDMI 2 · Media player', 'appId': 'preview.hdmi2'},
     ]}
+
+
+def bing_wallpapers():
+    # Same request and filtering as renewal-service/wallpapers.js, for the live preview only.
+    import re
+    import urllib.request
+    try:
+        with urllib.request.urlopen('https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=8&mkt=en-IN', timeout=10) as r:
+            data = json.load(r)
+        images = [{'url': 'https://www.bing.com' + i['urlbase'] + '_1920x1080.jpg', 'title': i.get('title', ''),
+                   'copyright': i.get('copyright', ''), 'date': i.get('startdate', '')}
+                  for i in data.get('images', []) if re.fullmatch(r'/th\?id=OHR\.[A-Za-z0-9_.-]+', i.get('urlbase', ''))]
+        return json.dumps({'returnValue': True, 'images': images}).encode()
+    except Exception as e:
+        return json.dumps({'returnValue': False, 'errorText': str(e)}).encode()
 
 
 def revision():
@@ -119,6 +138,9 @@ class Handler(BaseHTTPRequestHandler):
         if path.startswith('/root-launcher/') and path[len('/root-launcher/'):] in ROOT_LAUNCHER_FILES:
             name = path[len('/root-launcher/'):]
             self.respond(root_launcher()[name], mimetypes.guess_type(name)[0] or 'application/octet-stream')
+            return
+        if path == '/preview/bing':
+            self.respond(bing_wallpapers(), 'application/json')
             return
         if path == '/':
             file = ROOT / 'preview/index.html'

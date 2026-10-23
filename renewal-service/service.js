@@ -39,6 +39,12 @@ service.register('tick',function(m){manager.check().then(function(s){
  else respond(m,s);
 });});
 
+var wallpapers=require('./wallpapers').createWallpapers({dir:dir});
+service.register('wallpapers',function(m){
+ wallpapers.get(m.payload||{}).then(function(c){m.respond({returnValue:true,images:c.images,fetchedAt:c.fetchedAt,stale:!!c.stale});},
+  function(e){m.respond({returnValue:false,errorText:e.message});});
+});
+
 service.register('restoreHistory',function(m){
  var raw=m.ls2Message,id=raw&&raw.applicationID&&raw.applicationID();
  if(typeof id!=='string'||id.split(' ')[0]!=='com.gathin.tvhome'){m.respond({returnValue:false});return;}

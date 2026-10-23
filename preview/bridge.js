@@ -48,6 +48,14 @@
             effective: {sam_home: home, profiles: {defaultApps: {categories: {home: home}}, idleApp: {appId: home}}}};
           result = {returnValue: true, result: {returnValue: true, result: rootMethod === 'restore' ? 'restored' : state}};
         }
+      } else if (uri === 'luna://com.gathin.tvhome.renewal/wallpapers') {
+        // Served by scripts/preview.py from live Bing data; the static export has none.
+        var x = new XMLHttpRequest();
+        x.open('GET', '/preview/bing', true);
+        x.onload = function () { if (bridge.onservicecallback) bridge.onservicecallback(x.status === 200 ? x.responseText : JSON.stringify(result)); };
+        x.onerror = function () { if (bridge.onservicecallback) bridge.onservicecallback(JSON.stringify(result)); };
+        x.send();
+        return;
       } else if (uri.indexOf('luna://com.gathin.tvhome.renewal/') === 0) {
         var method = uri.split('/').pop();
         if (['status', 'enable', 'disable', 'check'].indexOf(method) >= 0) {

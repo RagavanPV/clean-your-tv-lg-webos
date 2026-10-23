@@ -1,0 +1,13 @@
+White app glyphs for the glass Home pills.
+Brand names and logos belong to their respective owners.
+
+applemusic: https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/applemusic.svg
+appletv: https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/appletv.svg
+netflix: https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/netflix.svg
+primevideo: https://raw.githubusercontent.com/simple-icons/simple-icons/11.15.0/icons/primevideo.svg
+spotify: https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/spotify.svg
+twitch: https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/twitch.svg
+youtube: https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/youtube.svg
+youtubemusic: https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/youtubemusic.svg
+
+Simple Icons: CC0 (https://github.com/simple-icons/simple-icons/blob/develop/LICENSE.md).

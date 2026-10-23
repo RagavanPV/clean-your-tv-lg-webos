@@ -1,1 +1,459 @@
-!function(){"use strict";var e,t=Math.max(1,CONFIG.columns||4),n=1696/t,a=13,i=461,o=[[5,"Good night"],[12,"Good morning"],[17,"Good afternoon"],[22,"Good evening"],[24,"Good night"]],r=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],s=["January","February","March","April","May","June","July","August","September","October","November","December"],l=function(e){return document.getElementById(e)},c=l("stage"),u=l("tiles"),d=l("glass"),f=l("hero"),p=[l("ambientA"),l("ambientB")],m=0,v=null,h=[l("btnInputs"),l("btnWifi"),l("btnSettings")],g=l("inputsPanel"),y=[],x="grid",L=0,b=0,C=0,w=[],M=0,E=!1,k=!1,I=null,T=[];function N(e,t,n){try{var a=new PalmServiceBridge;a.onservicecallback=function(e){var i;try{i=JSON.parse(e)}catch(e){i={returnValue:!1}}n&&n(i),t&&t.subscribe||T.splice(T.indexOf(a),1)},T.push(a),a.call(e,JSON.stringify(t||{}))}catch(e){n&&n({returnValue:!1,errorText:String(e)})}}function S(e,t,n){N("luna://com.webos.applicationManager/launch",{id:e,params:n||{}},function(n){!1===n.returnValue&&O("Can't open "+(t||e))})}function O(t){var n=l("toast");n.textContent=t,n.classList.add("shown"),clearTimeout(e),e=setTimeout(function(){n.classList.remove("shown")},2200)}var V="tvhome.order";function A(e){return Math.floor(e/t)}function G(e){return 112+e%t*n+(n-360)/2}function H(e){var t=A(e);return 708+292*t+(t>0?36:0)}function F(){y.forEach(function(e,t){e.el.style.left=G(t)+"px",e.el.style.top=H(t)+"px",e.el.classList.toggle("dock",0===A(t))});var e=l("dockBand"),a=Math.min(t,y.length);e.style.display=a?"block":"none",e.style.left=G(0)-28+"px",e.style.top="680px",e.style.width=(a-1)*n+360+56+"px",e.style.height="258px"}function P(){y.forEach(function(e,t){e.el.classList.remove("shown"),setTimeout(function(){e.el.classList.add("shown")},60+40*Math.min(t,16))})}function D(e){var t=B(e);if(!t)return"#2c2c2e";var n=W(t);return n[1]<.15&&(n[2]>.85||n[2]<.1)?"#2c2c2e":"rgb("+t.join(",")+")"}function B(e){var t=/^#?([0-9a-f]{6})$/i.exec(e||"");if(!t)return null;var n=parseInt(t[1],16);return[n>>16&255,n>>8&255,255&n]}function W(e){var t=e[0]/255,n=e[1]/255,a=e[2]/255,i=Math.max(t,n,a),o=i-Math.min(t,n,a),r=0;return o&&(r=i===t?(n-a)/o%6:i===n?(a-t)/o+2:(t-n)/o+4,(r*=60)<0&&(r+=360)),[r,i?o/i:0,i]}function J(e){var t=e[0],n=e[1],a=e[2],i=a*n,o=i*(1-Math.abs(t/60%2-1)),r=a-i;return(t<60?[i,o,0]:t<120?[o,i,0]:t<180?[0,i,o]:t<240?[0,o,i]:t<300?[o,0,i]:[i,0,o]).map(function(e){return Math.round(255*(e+r))})}function j(e){if(y.length){e=Math.max(0,Math.min(e,y.length-1)),_("grid"),y[L]&&y[L].el.classList.remove("focused"),L=e,y[e].el.classList.add("focused");var t=H(e),n=A(e);0===n?M=0:(t-M+202+70>1060&&(M=t+202+70-1060),t-M-24<80&&(M=t-24-80)),c.style.transform="translateY("+-M+"px)";var a=document.querySelector("header"),i=a.offsetTop+a.offsetHeight;document.body.classList.toggle("scrolled",680-M<i+24);var o=1.1*360+24,r=1.1*202+24,s=G(e)+180-o/2,l=t+101-r/2;d.style.width=o+"px",d.style.height=r+"px",d.style.transform="translate("+s+"px,"+l+"px)",k||(d.style.transition="none",d.offsetWidth,d.style.transition="",d.style.opacity="1",k=!0),0===n?function(e){var t=e.app.title;f.style.top="532px",E?f.textContent!==t&&(f.style.opacity="0",f.style.transform="translateX(-24px)",clearTimeout(f.swap),f.swap=setTimeout(function(){f.textContent=t,f.style.transition="none",f.style.transform="translateX(24px)",f.offsetWidth,f.style.transition="",f.style.transform="none",f.style.opacity="1"},120)):(f.textContent=t,f.style.transform="none",f.style.opacity="1",E=!0),z(e.color)}(y[e]):E&&(E=!1,f.style.opacity="0"),z(y[e].color)}}function z(e){if(e){var t=e.join(",");if(t!==v){v=t;var n=p[1-m];n.style.background="radial-gradient(circle 1190px at 32% 42%, rgba("+t+",0.36) 0%, rgba("+t+",0.15) 50%, rgba("+t+",0) 100%)",n.style.opacity="1",p[m].style.opacity="0",m=1-m}}}function R(e){_("top"),document.body.classList.remove("scrolled"),h[b].classList.remove("focused"),b=Math.max(0,Math.min(e,h.length-1)),h[b].classList.add("focused")}function _(e){x!==e&&("top"===x&&h[b].classList.remove("focused"),"grid"===x&&(y[L]&&y[L].el.classList.remove("focused"),k=!1,d.style.opacity="0"),x=e)}function X(){for(var e=new Date,t=e.getHours(),n=0;n<o.length;n++)if(t<o[n][0]){l("greeting").textContent=o[n][1];break}var a=e.getMinutes();l("clock").textContent=(t%12||12)+":"+(a<10?"0":"")+a,l("ampm").textContent=t<12?"am":"pm",l("date").textContent=r[e.getDay()]+"  "+e.getDate()+" "+s[e.getMonth()]}function q(e){if(3===e){window.HelperControl&&window.HelperControl.resume();return}0===e?function(){if(g.innerHTML="",w=[],(window.TV_APPS&&TV_APPS.inputs||[]).forEach(function(e){K("M18,7V4c0,-1.1 -0.9,-2 -2,-2H8C6.9,2 6,2.9 6,4v3H5v6l3,6v3h8v-3l3,-6V7H18zM8,4h8v3h-2V5h-1v2h-2V5h-1v2H8V4z",e.label,e.appId)}),CONFIG.liveTvApp&&(w.length&&g.appendChild(Object.assign(document.createElement("div"),{className:"separator"})),K("M21,6h-7.59l3.29,-3.29L16,2l-4,4l-4,-4l-0.71,0.71L10.59,6H3c-1.1,0 -2,0.89 -2,2v12c0,1.1 0.9,2 2,2h18c1.1,0 2,-0.89 2,-2V8C23,6.89 22.1,6 21,6zM21,20H3V8h18V20zM9,10v8l7,-4L9,10z","Live TV",CONFIG.liveTvApp)),w.length){var e=h[0].getBoundingClientRect();g.style.left=e.left+"px",g.style.top=e.bottom+20+"px",g.style.minWidth=Math.max(e.width,300)+"px",g.classList.remove("hidden"),h[b].classList.remove("focused"),x="inputs",Y(0)}else O("No inputs found")}():1===e?S("com.webos.app.firstuse-overlay","Network settings",{target:"network"}):window.RenewalPanel.open()}function K(e,t,n){var a=document.createElement("div");a.className="inputRow",a.innerHTML='<svg viewBox="0 0 24 24"><path d="'+e+'"/></svg>',a.appendChild(document.createTextNode(t));var i=w.length;a.addEventListener("mouseover",function(){Y(i)}),a.addEventListener("click",function(){$(),S(n,t)}),a.appId=n,a.label=t,w.push(a),g.appendChild(a)}function Y(e){w[C]&&w[C].classList.remove("focused"),C=Math.max(0,Math.min(e,w.length-1)),w[C].classList.add("focused")}function $(){g.classList.add("hidden"),x="none",R(0)}function Q(e){e<0||e>=y.length||e===L||(y.splice(e,0,y.splice(L,1)[0]),L=e,F(),j(e))}function U(e){var t=I.item;e||(y=I.snapshot,F()),I=null,t.el.classList.remove("moving"),document.body.classList.remove("editing"),e&&function(){try{localStorage.setItem(V,JSON.stringify({dock:(CONFIG.dockApps||[]).join(","),ids:y.map(function(e){return e.app.id})}))}catch(e){}}(),j(L=y.indexOf(t))}var Z=!1,ee=null;function te(){I&&U(!1),X(),"inputs"===x&&g.classList.add("hidden"),h.forEach(function(e){e.classList.remove("focused")}),x="none",P(),j(L)}document.addEventListener("keyup",function(e){if(window.RenewalPanel&&window.RenewalPanel.isOpen()){Z=!1;return;}if(e.keyCode===a&&(Z=!1,ee)){clearTimeout(ee),ee=null;var t=y[L];"grid"===x&&t&&!I&&S(t.app.id,t.app.title)}}),document.addEventListener("keydown",function(e){var n=e.keyCode;if(n===a&&Z)e.preventDefault();else{if(n===a&&(Z=!0),I)if(37===n)Q(L-1);else if(39===n)Q(L+1);else if(38===n)Q(L-t);else if(40===n)Q(Math.min(L+t,y.length-1));else if(n===a)U(!0);else{if(n!==i&&27!==n)return;U(!1)}else if("inputs"===x)if(38===n)Y(C-1);else if(40===n)Y(C+1);else if(n===a){var o=w[C];$(),S(o.appId,o.label)}else{if(n!==i&&27!==n&&37!==n&&39!==n)return;$()}else if("top"===x){if(37===n)R(b-1);else if(39===n)R(b+1);else if(40===n)j(0===A(L)?L:0);else if(n===a)q(b);else if(n!==i)return}else{var r=L%t,s=y.length-1;if(37===n)r>0&&j(L-1);else if(39===n)r<t-1&&L<s&&j(L+1);else if(38===n)0===A(L)?R((l=G(L)+180,c=0,u=1/0,h.forEach(function(e,t){var n=e.getBoundingClientRect(),a=Math.abs(n.left+n.width/2-l);a<u&&(u=a,c=t)}),c)):j(L-t);else if(40===n)A(L)<A(s)&&j(Math.min(L+t,s));else if(n===a)ee=setTimeout(function(){var e;ee=null,(e=y[L])&&(I={item:e,snapshot:y.slice()},e.el.classList.add("moving"),document.body.classList.add("editing"),O("Arrows to move  ·  OK to place  ·  Back to cancel"))},600);else if(n!==i)return}var l,c,u;e.preventDefault()}}),window.helperResumeMessage=O;window.setHelperResumeVisible=function(visible){var button=l("btnResumeHome");if(!visible&&h.length===4){if(x==="top"&&b===3)R(2);h.pop()}else if(visible&&h.length===3)h.push(button);button.classList.toggle("hidden",!visible);document.body.classList.toggle("helper-stopped",visible)};l("btnResumeHome").addEventListener("mouseover",function(){if(h.length===4&&x!=="inputs")R(3)});l("btnResumeHome").addEventListener("click",function(){if(h.length===4)q(3)});h.forEach(function(e,t){e.addEventListener("mouseover",function(){"inputs"!==x&&R(t)}),e.addEventListener("click",function(){q(t)})}),document.addEventListener("webOSRelaunch",te),document.addEventListener("visibilitychange",function(){document.hidden||te()}),u.innerHTML="",y=function(){var e=window.TV_APPS&&TV_APPS.apps||[],n={};e.forEach(function(e){n[e.id]=e});var a={};(CONFIG.hiddenApps||[]).forEach(function(e){a[e]=!0});var i=function(e,t){return e.title.toLowerCase()<t.title.toLowerCase()?-1:1},o=function(){try{var e=JSON.parse(localStorage.getItem(V));return e&&e.dock===(CONFIG.dockApps||[]).join(",")?e.ids:null}catch(e){return null}}();if(o){var r=[];return o.forEach(function(e){n[e]&&!a[e]&&(r.push(n[e]),a[e]=!0)}),r.concat(e.filter(function(e){return!a[e.id]}).sort(i))}var s=[];(CONFIG.dockApps||[]).forEach(function(e){n[e]&&!a[e]&&s.length<t&&(s.push(n[e]),a[e]=!0)});var l=e.filter(function(e){return!a[e.id]});return l.sort(i),s.concat(l)}().map(function(e){var t=document.createElement("div");t.className="item";var n=document.createElement("div");n.className="card";var a=document.createElement("img"),i={app:e,el:t,card:n,color:null};a.onload=function(){!function(e,t){var n=null,a=null;try{var i=document.createElement("canvas");i.width=12,i.height=12;var o=i.getContext("2d");o.drawImage(t,0,0,12,12),n=o.getImageData(0,0,12,12).data,a=function(e){var t=e.naturalWidth,n=e.naturalHeight,a=document.createElement("canvas");a.width=t,a.height=n;var i=a.getContext("2d");i.drawImage(e,0,0);var o=i.getImageData(2,2,1,1).data;return o[3]>200?o:i.getImageData(2,Math.floor(n/2),1,1).data}(t)}catch(e){}var r=null;a&&a[3]>200?e.card.style.background="rgb("+a[0]+","+a[1]+","+a[2]+")":(e.card.classList.add("glyph"),e.card.style.background=D(e.app.iconColor),r="#2c2c2e"===D(e.app.iconColor)?null:B(e.app.iconColor)),e.color=r||(n?function(e){for(var t=null,n=-1,a=[0,0,0],i=0,o=0;o<e.length;o+=4)if(!(e[o+3]<128)){var r=[e[o],e[o+1],e[o+2]];a[0]+=r[0],a[1]+=r[1],a[2]+=r[2],i++;var s=W(r),l=s[1]*Math.min(1,1.4*s[2]);l>n&&(n=l,t=r)}if(!i)return[68,68,68];if(n<.25){var c=W([a[0]/i,a[1]/i,a[2]/i]);return c[2]=Math.max(c[2],.55),J(c)}var u=W(t);return u[1]=Math.min(1,1.1*u[1]),u[2]=Math.max(.5,u[2]),J(u)}(n):B(e.app.iconColor)),y[L]===e&&z(e.color)}(i,a)},a.src=e.icon,n.appendChild(a),t.appendChild(n);var o=document.createElement("div");return o.className="name",o.textContent=e.title,t.appendChild(o),t.addEventListener("mouseover",function(){"inputs"===x||I||j(y.indexOf(i))}),t.addEventListener("click",function(){I?U(!0):S(e.id,e.title)}),u.appendChild(t),i}),F(),X(),setInterval(X,1e4),N("luna://com.palm.connectionmanager/getStatus",{subscribe:!0},function(e){if(!1!==e.returnValue||e.wifi||e.wired){var t="Wi-Fi";e.wired&&"connected"===e.wired.state?t="Ethernet":e.wifi&&"connected"===e.wifi.state?t=e.wifi.ssid||"Wi-Fi":!1===e.isInternetConnectionAvailable&&(t="Offline"),l("wifiLabel").textContent=t}}),P(),x="none",j(0)}();
+/* Glass Home: photo wallpaper, a row of glass app pills, and tabs that switch the row. */
+(function () {
+  'use strict';
+  var KEY_OK = 13, KEY_BACK = 461, KEY_ESC = 27, LEFT = 37, UP = 38, RIGHT = 39, DOWN = 40;
+  var HOLD_MS = 600, TABS_KEY = 'tvhome.tabs', DOCK_WIDTH = 1728, GRID_COLUMNS = 5;
+  var MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+  // White glyphs from Simple Icons, matched against normalised app titles.
+  var LOGOS = {
+    netflix: {file: 'netflix'}, youtube: {file: 'youtube'}, youtubemusic: {file: 'youtubemusic'},
+    primevideo: {file: 'primevideo', wordmark: true}, amazonprimevideo: {file: 'primevideo', wordmark: true},
+    spotify: {file: 'spotify'}, appletv: {file: 'appletv'}, applemusic: {file: 'applemusic'}, twitch: {file: 'twitch'}
+  };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var tilesEl = $('tiles'), tabBar = $('tabBar'), inputsPanel = $('inputsPanel'), allPanel = $('allPanel');
+  var allGrid = $('allGrid'), toastEl = $('toast');
+  var topButtons = [$('btnInputs'), $('btnSettings'), $('btnSearch')];
+
+  var apps = [], tabs = [], dockItems = [], tabEls = [], inputRows = [], gridItems = [];
+  var zone = 'dock', tabIndex = 0, tabFocus = 0, dockIndex = 0, topIndex = 0, inputIndex = 0, gridIndex = 0;
+  var holdTimer = null, okDown = false, toastTimer = null;
+
+  // ---- TV services ----------------------------------------------------------------------------
+
+  function call(uri, payload, callback) {
+    try {
+      var bridge = new PalmServiceBridge();
+      bridge.onservicecallback = function (raw) {
+        var result;
+        try { result = JSON.parse(raw); } catch (_) { result = {returnValue: false}; }
+        if (callback) callback(result);
+      };
+      bridge.call(uri, JSON.stringify(payload || {}));
+    } catch (e) {
+      if (callback) callback({returnValue: false, errorText: String(e)});
+    }
+  }
+
+  function launch(id, title, params, onFail) {
+    call('luna://com.webos.applicationManager/launch', {id: id, params: params || {}}, function (r) {
+      if (r.returnValue === false) {
+        if (onFail) onFail();
+        else toast("Can't open " + (title || id));
+      }
+    });
+  }
+
+  function launchFirst(ids, title) {
+    if (!ids.length) { toast("Can't open " + title); return; }
+    launch(ids[0], title, null, function () { launchFirst(ids.slice(1), title); });
+  }
+
+  function toast(text) {
+    toastEl.textContent = text;
+    toastEl.classList.add('shown');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove('shown'); }, 2400);
+  }
+
+  // ---- apps and tabs --------------------------------------------------------------------------
+
+  function norm(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+
+  function byTitle(a, b) { return a.title.toLowerCase() < b.title.toLowerCase() ? -1 : 1; }
+
+  // One matcher picks one app: an exact id, else an exact title, else a title prefix.
+  function findApp(matcher, taken) {
+    var free = apps.filter(function (a) { return !taken[a.id]; });
+    var exact = free.filter(function (a) { return a.id === matcher; })[0];
+    if (exact) return exact;
+    var keys = String(matcher).split('|').map(norm).filter(Boolean);
+    for (var i = 0; i < keys.length; i++) {
+      var hit = free.filter(function (a) { return norm(a.title) === keys[i]; })[0] ||
+        free.filter(function (a) { return norm(a.title).indexOf(keys[i]) === 0; })[0];
+      if (hit) return hit;
+    }
+    return null;
+  }
+
+  function readOverrides() {
+    try { return JSON.parse(localStorage.getItem(TABS_KEY)) || {}; } catch (_) { return {}; }
+  }
+
+  function saveOverride(name, ids) {
+    var all = readOverrides();
+    all[name] = ids;
+    try { localStorage.setItem(TABS_KEY, JSON.stringify(all)); } catch (_) {}
+  }
+
+  function buildTabs() {
+    var hidden = {}, byId = {}, overrides = readOverrides(), placed = {};
+    (CONFIG.hiddenApps || []).forEach(function (id) { hidden[id] = true; });
+    apps = ((window.TV_APPS && TV_APPS.apps) || []).filter(function (a) { return !hidden[a.id]; });
+    apps.forEach(function (a) { byId[a.id] = a; });
+    var config = CONFIG.tabs && CONFIG.tabs.length ? CONFIG.tabs : [{name: 'Apps', rest: true}];
+    tabs = config.map(function (t) {
+      var list = [];
+      if (!t.rest) {
+        if (Array.isArray(overrides[t.name])) {
+          list = overrides[t.name].map(function (id) { return byId[id]; }).filter(Boolean);
+        } else {
+          var taken = {};
+          (t.apps || []).forEach(function (m) {
+            var app = findApp(m, taken);
+            if (app) { list.push(app); taken[app.id] = true; }
+          });
+        }
+        list.forEach(function (a) { placed[a.id] = true; });
+      }
+      return {name: t.name, rest: !!t.rest, apps: list};
+    });
+    tabs.forEach(function (t) {
+      if (t.rest) t.apps = apps.filter(function (a) { return !placed[a.id]; }).sort(byTitle);
+    });
+    tabIndex = Math.min(tabIndex, tabs.length - 1);
+  }
+
+  // ---- rendering ------------------------------------------------------------------------------
+
+  function makePill(app) {
+    var el = document.createElement('div');
+    el.className = 'item glass smoked';
+    var logo = LOGOS[norm(app.title)];
+    if (logo) {
+      var img = document.createElement('img');
+      img.className = 'logo' + (logo.wordmark ? ' wordmark' : '');
+      img.src = 'logos/' + logo.file + '.svg';
+      el.appendChild(img);
+    }
+    if (!logo || !logo.wordmark) {
+      var label = document.createElement('span');
+      label.className = 'label' + (app.title.length > 12 ? ' long' : '');
+      label.textContent = app.title;
+      el.appendChild(label);
+    }
+    return el;
+  }
+
+  function renderDock() {
+    var tab = tabs[tabIndex];
+    tilesEl.innerHTML = '';
+    tilesEl.style.transform = 'none';
+    tilesEl.dataset.offset = 0;
+    dockItems = tab.apps.map(function (app, i) {
+      var el = makePill(app);
+      el.addEventListener('mouseover', function () { if (!panelOpen()) focusDock(i); });
+      el.addEventListener('click', function () { launch(app.id, app.title); });
+      tilesEl.appendChild(el);
+      setTimeout(function () { el.classList.add('shown'); }, 40 + 45 * Math.min(i, 10));
+      return {app: app, el: el};
+    });
+    $('emptyHint').classList.toggle('hidden', dockItems.length > 0);
+    dockIndex = Math.min(dockIndex, Math.max(0, dockItems.length - 1));
+  }
+
+  function renderTabs() {
+    tabBar.innerHTML = '';
+    tabEls = tabs.map(function (t, i) {
+      var el = document.createElement('div');
+      el.className = 'tab';
+      el.textContent = t.name;
+      el.addEventListener('mouseover', function () { if (!panelOpen()) focusTab(i); });
+      el.addEventListener('click', function () { selectTab(i); });
+      tabBar.appendChild(el);
+      return el;
+    });
+    var add = document.createElement('div');
+    add.className = 'tab add glass';
+    add.textContent = '+';
+    add.addEventListener('mouseover', function () { if (!panelOpen()) focusTab(tabs.length); });
+    add.addEventListener('click', openAll);
+    tabBar.appendChild(add);
+    tabEls.push(add);
+    markActiveTab();
+  }
+
+  function markActiveTab() {
+    tabEls.forEach(function (el, i) { el.classList.toggle('active', i === tabIndex); });
+  }
+
+  function selectTab(i) {
+    if (i < 0 || i >= tabs.length) return;
+    if (i !== tabIndex) {
+      tabIndex = i;
+      dockIndex = 0;
+      renderDock();
+      markActiveTab();
+    }
+  }
+
+  // ---- focus ----------------------------------------------------------------------------------
+
+  function clearFocus() {
+    document.querySelectorAll('.focused').forEach(function (el) { el.classList.remove('focused'); });
+  }
+
+  function focusDock(i) {
+    if (!dockItems.length) { focusTab(tabIndex); return; }
+    zone = 'dock';
+    clearFocus();
+    dockIndex = Math.max(0, Math.min(i, dockItems.length - 1));
+    var el = dockItems[dockIndex].el;
+    el.classList.add('focused');
+    // Scroll the row sideways so the focused pill stays fully visible.
+    var offset = Number(tilesEl.dataset.offset || 0), left = el.offsetLeft, right = left + el.offsetWidth;
+    if (right - offset > DOCK_WIDTH) offset = right - DOCK_WIDTH;
+    if (left - offset < 0) offset = left;
+    tilesEl.dataset.offset = offset;
+    tilesEl.style.transform = 'translateX(' + -offset + 'px)';
+  }
+
+  function focusTab(i) {
+    zone = 'tabs';
+    clearFocus();
+    tabFocus = Math.max(0, Math.min(i, tabEls.length - 1));
+    tabEls[tabFocus].classList.add('focused');
+    if (tabFocus < tabs.length) selectTab(tabFocus);
+  }
+
+  function focusTop(i) {
+    zone = 'top';
+    clearFocus();
+    topIndex = Math.max(0, Math.min(i, topButtons.length - 1));
+    topButtons[topIndex].classList.add('focused');
+  }
+
+  function activateTop(i) {
+    var id = topButtons[i].id;
+    if (id === 'btnInputs') openInputs();
+    else if (id === 'btnSettings') { if (window.RenewalPanel) window.RenewalPanel.open(); }
+    else if (id === 'btnSearch') launchFirst((CONFIG.searchApps || []).slice(), 'Search');
+    else if (id === 'btnResumeHome' && window.HelperControl) window.HelperControl.resume();
+  }
+
+  // ---- inputs dropdown ------------------------------------------------------------------------
+
+  function openInputs() {
+    inputsPanel.innerHTML = '';
+    var list = ((window.TV_APPS && TV_APPS.inputs) || []).slice();
+    if (CONFIG.liveTvApp) list.push({label: 'Live TV', appId: CONFIG.liveTvApp});
+    if (!list.length) { toast('No inputs found'); return; }
+    inputRows = list.map(function (input, i) {
+      var row = document.createElement('div');
+      row.className = 'inputRow';
+      row.textContent = input.label;
+      row.addEventListener('mouseover', function () { focusInput(i); });
+      row.addEventListener('click', function () { closeInputs(); launch(input.appId, input.label); });
+      inputsPanel.appendChild(row);
+      return {el: row, input: input};
+    });
+    var r = $('btnInputs').getBoundingClientRect();
+    inputsPanel.style.right = (1920 - r.right) + 'px';
+    inputsPanel.style.top = (r.bottom + 40) + 'px';
+    inputsPanel.classList.remove('hidden');
+    focusInput(0);
+  }
+
+  function focusInput(i) {
+    zone = 'inputs';
+    clearFocus();
+    inputIndex = Math.max(0, Math.min(i, inputRows.length - 1));
+    inputRows[inputIndex].el.classList.add('focused');
+  }
+
+  function closeInputs() {
+    inputsPanel.classList.add('hidden');
+    focusTop(0);
+  }
+
+  // ---- all apps -------------------------------------------------------------------------------
+
+  // Editing targets the tab that was showing; the "rest" tab is not editable.
+  function editableTab() { return tabs[tabIndex].rest ? tabs.filter(function (t) { return !t.rest; })[0] : tabs[tabIndex]; }
+
+  function renderAll() {
+    var tab = editableTab();
+    $('allTitle').innerHTML = '';
+    $('allTitle').appendChild(document.createTextNode('All apps'));
+    if (tab) {
+      var hint = document.createElement('span');
+      hint.innerHTML = '  ·  OK to open  ·  hold OK to add to or remove from <b></b>';
+      hint.querySelector('b').textContent = tab.name.toUpperCase();
+      $('allTitle').appendChild(hint);
+    }
+    allGrid.innerHTML = '';
+    var members = {};
+    if (tab) tab.apps.forEach(function (a) { members[a.id] = true; });
+    gridItems = apps.slice().sort(byTitle).map(function (app, i) {
+      var el = makePill(app);
+      el.classList.toggle('member', !!members[app.id]);
+      el.addEventListener('mouseover', function () { focusGrid(i); });
+      el.addEventListener('click', function () { launch(app.id, app.title); });
+      allGrid.appendChild(el);
+      return {app: app, el: el};
+    });
+  }
+
+  function openAll() {
+    renderAll();
+    allPanel.classList.remove('hidden');
+    focusGrid(0);
+  }
+
+  function closeAll() {
+    allPanel.classList.add('hidden');
+    renderDock();
+    focusTab(tabs.length);
+  }
+
+  function focusGrid(i) {
+    zone = 'all';
+    clearFocus();
+    gridIndex = Math.max(0, Math.min(i, gridItems.length - 1));
+    if (!gridItems.length) return;
+    var el = gridItems[gridIndex].el;
+    el.classList.add('focused');
+    // Keep the focused row inside the sheet.
+    var top = el.offsetTop, bottom = top + el.offsetHeight;
+    if (bottom > allGrid.scrollTop + allGrid.clientHeight - 12) allGrid.scrollTop = bottom - allGrid.clientHeight + 12;
+    if (top < allGrid.scrollTop + 12) allGrid.scrollTop = top - 12;
+  }
+
+  function toggleMembership() {
+    var tab = editableTab(), item = gridItems[gridIndex];
+    if (!tab || !item) return;
+    var ids = tab.apps.map(function (a) { return a.id; }), at = ids.indexOf(item.app.id);
+    if (at >= 0) ids.splice(at, 1); else ids.push(item.app.id);
+    saveOverride(tab.name, ids);
+    buildTabs();
+    item.el.classList.toggle('member', at < 0);
+    toast((at < 0 ? 'Added to ' : 'Removed from ') + tab.name);
+  }
+
+  // ---- keys -----------------------------------------------------------------------------------
+
+  function panelOpen() {
+    var update = $('updatePanel');
+    return !!(window.RenewalPanel && window.RenewalPanel.isOpen()) || !!(update && !update.classList.contains('hidden'));
+  }
+
+  function ok() {
+    if (zone === 'dock' && dockItems[dockIndex]) launch(dockItems[dockIndex].app.id, dockItems[dockIndex].app.title);
+    else if (zone === 'tabs') { if (tabFocus === tabs.length) openAll(); else selectTab(tabFocus); }
+    else if (zone === 'top') activateTop(topIndex);
+    else if (zone === 'inputs') { var row = inputRows[inputIndex]; closeInputs(); launch(row.input.appId, row.input.label); }
+    else if (zone === 'all' && gridItems[gridIndex]) launch(gridItems[gridIndex].app.id, gridItems[gridIndex].app.title);
+  }
+
+  function hold() {
+    if (zone === 'all') toggleMembership();
+    else ok();
+  }
+
+  function back() {
+    if (zone === 'all') closeAll();
+    else if (zone === 'inputs') closeInputs();
+    else focusDock(dockIndex);
+  }
+
+  function arrow(key) {
+    if (zone === 'dock') {
+      if (key === LEFT) focusDock(dockIndex - 1);
+      else if (key === RIGHT) focusDock(dockIndex + 1);
+      else if (key === UP) focusTop(topButtons.length - 1);
+      else if (key === DOWN) focusTab(tabIndex);
+    } else if (zone === 'tabs') {
+      if (key === LEFT) focusTab(tabFocus - 1);
+      else if (key === RIGHT) focusTab(tabFocus + 1);
+      else if (key === UP) focusDock(dockIndex);
+    } else if (zone === 'top') {
+      if (key === LEFT) focusTop(topIndex - 1);
+      else if (key === RIGHT) focusTop(topIndex + 1);
+      else if (key === DOWN) focusDock(dockIndex);
+    } else if (zone === 'inputs') {
+      if (key === UP) focusInput(inputIndex - 1);
+      else if (key === DOWN) focusInput(inputIndex + 1);
+      else closeInputs();
+    } else if (zone === 'all') {
+      if (key === LEFT) focusGrid(gridIndex - 1);
+      else if (key === RIGHT) focusGrid(gridIndex + 1);
+      else if (key === UP && gridIndex >= GRID_COLUMNS) focusGrid(gridIndex - GRID_COLUMNS);
+      else if (key === DOWN && gridIndex + GRID_COLUMNS < gridItems.length) focusGrid(gridIndex + GRID_COLUMNS);
+    }
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (panelOpen()) { okDown = false; return; }
+    var key = e.keyCode;
+    if (key === KEY_OK) {
+      // OK fires on release so a long press can mean "hold" instead.
+      if (!okDown) {
+        okDown = true;
+        holdTimer = setTimeout(function () { holdTimer = null; hold(); }, HOLD_MS);
+      }
+    } else if (key === KEY_BACK || key === KEY_ESC) back();
+    else if (key >= LEFT && key <= DOWN) arrow(key);
+    else return;
+    e.preventDefault();
+  });
+
+  document.addEventListener('keyup', function (e) {
+    if (e.keyCode !== KEY_OK || !okDown) return;
+    okDown = false;
+    if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; ok(); }
+  });
+
+  // ---- clock ----------------------------------------------------------------------------------
+
+  function tick() {
+    var d = new Date(), h = d.getHours(), m = d.getMinutes();
+    $('clock').textContent = (h % 12 || 12) + ':' + (m < 10 ? '0' : '') + m + ' ' + (h < 12 ? 'AM' : 'PM');
+    $('date').textContent = d.getDate() + ' ' + MONTHS[d.getMonth()] + " '" + String(d.getFullYear()).slice(2);
+  }
+
+  // ---- helper-control.js hooks ----------------------------------------------------------------
+
+  window.helperResumeMessage = toast;
+  window.setHelperResumeVisible = function (visible) {
+    var button = $('btnResumeHome'), at = topButtons.indexOf(button);
+    if (visible && at < 0) topButtons.push(button);
+    if (!visible && at >= 0) {
+      topButtons.splice(at, 1);
+      if (zone === 'top' && topIndex >= topButtons.length) focusTop(topButtons.length - 1);
+    }
+    button.classList.toggle('hidden', !visible);
+  };
+
+  // ---- start ----------------------------------------------------------------------------------
+
+  // Pressing Home brings the launcher back: close anything open and return to the app row.
+  function reset() {
+    tick();
+    inputsPanel.classList.add('hidden');
+    allPanel.classList.add('hidden');
+    focusDock(dockIndex);
+  }
+
+  topButtons.concat($('btnResumeHome')).forEach(function (el) {
+    el.addEventListener('mouseover', function () {
+      var i = topButtons.indexOf(el);
+      if (i >= 0 && !panelOpen() && zone !== 'inputs') focusTop(i);
+    });
+    el.addEventListener('click', function () {
+      var i = topButtons.indexOf(el);
+      if (i >= 0) activateTop(i);
+    });
+  });
+  document.addEventListener('webOSRelaunch', reset);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) reset(); });
+
+  if (CONFIG.glassBlur === false) document.body.classList.add('no-blur');
+  buildTabs();
+  renderTabs();
+  renderDock();
+  tick();
+  setInterval(tick, 10000);
+  if (window.Wallpaper) window.Wallpaper.start();
+  focusDock(0);
+}());
